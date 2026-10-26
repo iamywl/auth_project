@@ -44,6 +44,7 @@
 - **기획/비즈니스 에이전트**: [`.agents/planner_agent.md`](./.agents/planner_agent.md)
 - **아키텍처/풀스택/AX 개발 에이전트**: [`.agents/developer_agent.md`](./.agents/developer_agent.md)
 - **QA/대규모 동시성·트래픽 스트레스/보안 검증 에이전트**: [`.agents/qa_agent.md`](./.agents/qa_agent.md)
+- **서비스 부하 대응 & 고가용성 SRE 엔지니어링 에이전트**: [`.agents/load_resilience_sre_agent.md`](./.agents/load_resilience_sre_agent.md)
 - **컴플라이언스/법령·라이선스 감사/문서화 검토 에이전트**: [`.agents/compliance_agent.md`](./.agents/compliance_agent.md)
 - **기술 블로깅 & 트러블슈팅 기록 규칙**: 기획, 아키텍처, 개발, QA 동시성 검증 및 컴플라이언스 심사 검토 과정에서 발생하는 모든 이슈(Race Condition, Deadlock, Hash-Chain Forking, TOCTOU, 규제 적합성)와 해결 기법을 `doc/blog/` 디렉토리에 6단계 작성 표준에 맞춰 상세히 연재합니다.
 
@@ -58,6 +59,7 @@ auth_project/
 │   ├── planner_agent.md             # [기획 에이전트] 서비스/포털 기획, API 운영 매뉴얼 작성
 │   ├── developer_agent.md           # [개발 에이전트] PKI/인증 API, Hexagonal 아키텍처, Redis 락 구현
 │   ├── qa_agent.md                  # [QA 에이전트] 대규모 동시성, 레이스 컨디션, 스트레스 부하 검증
+│   ├── load_resilience_sre_agent.md # [SRE/부하 대응 에이전트] 피크 스파이크 트래픽, Throttling, 서킷 브레이커
 │   └── compliance_agent.md          # [컴플라이언스 에이전트] 3대 라이선스 심사, 아키텍처 문서화 완전성 감사
 ├── doc/                             # 기획서, API 운영 매뉴얼, 라이선스 심사 문서 및 기술 블로그
 │   ├── ARCHITECTURE.md              # Hexagonal 아키텍처 명세 및 공식 아이콘 R&R

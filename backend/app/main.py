@@ -12,6 +12,7 @@ from .pki_engine import pki_engine
 from .audit_logger import audit_logger
 from .compliance_ax import compliance_ax_engine
 from .redis_adapter import dist_lock_service, redis_session_store
+from .load_resilience import rate_limiter, circuit_breaker
 
 app = FastAPI(
     title="KakaoBank Partner Auth & Compliance AX Platform",
@@ -137,6 +138,27 @@ def issue_oauth_token(req: TokenRequest):
 # --- 2. Identity Verification APIs (본인확인) ---
 @app.post("/api/v1/identity/request", tags=["Identity"])
 def request_identity_verification(req: IdentityRequest, client_id: str = Depends(verify_partner_token)):
+    # 1. 서킷 브레이커 상태 검사 (외부 장애 시 즉시 Fallback 격리)
+    if not circuit_breaker.allow_request():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"error_code": "CIRCUIT_BREAKER_OPEN", "message": "외부 통신망 장애로 인해 서킷 브레이커가 동작 중입니다. 잠시 후 재시도하세요."}
+        )
+
+    # 2. Token Bucket Rate Limiting (제휴사별 스파이크 DoS 차단)
+    allowed, remaining = rate_limiter.is_allowed(client_id, tokens_requested=1)
+    if not allowed:
+        audit_logger.log(
+            action="RATE_LIMIT_EXCEEDED",
+            client_id=client_id,
+            tx_id="N/A",
+            payload_summary={"warning": "Too many requests. Throttled."}
+        )
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail={"error_code": "AUTH_4290_RATE_LIMIT_EXCEEDED", "message": "허용된 호출 한도를 초과했습니다 (Throttling 적용)."}
+        )
+
     tx_id = f"tx_id_{uuid.uuid4().hex[:12]}"
     now = time.time()
     

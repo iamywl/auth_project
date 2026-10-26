@@ -94,6 +94,7 @@ flowchart TB
 - **기획 에이전트**: [`.agents/planner_agent.md`](.agents/planner_agent.md) (서비스/포털 기획, API 운영 매뉴얼, 라이선스 가이드)
 - **개발 에이전트**: [`.agents/developer_agent.md`](.agents/developer_agent.md) (Hexagonal 아키텍처, PKI 엔진, Redis 분산 락, AX)
 - **QA & 동시성 엔지니어링 에이전트**: [`.agents/qa_agent.md`](.agents/qa_agent.md) (대규모 동시성, 레이스 컨디션, 부하 스트레스 검증)
+- **서비스 부하 대응 & SRE 에이전트**: [`.agents/load_resilience_sre_agent.md`](.agents/load_resilience_sre_agent.md) (피크 트래픽 Throttling, Token Bucket, 서킷 브레이커)
 - **컴플라이언스 & 라이선스 감사 에이전트**: [`.agents/compliance_agent.md`](.agents/compliance_agent.md) (3대 라이선스 심사 대응, 아키텍처 및 기술 문서화 완전성 감사)
 
 ---
@@ -119,6 +120,8 @@ flowchart TB
    - 3대 라이선스 요건 자동 스캔 알고리즘 및 제휴사 개발자 트러블슈팅 AI 어시스턴트
 5. [**[Tech Blog #05] DAU 수백만 트래픽에서의 레이스 컨디션 정복기: Redis 분산 락 & GitLab CI/CD**](doc/blog/05_high_concurrency_race_condition_and_stress_qa.md)
    - 50개 스레드 동시 호출 경합 시 정확히 1건 성공, 49건 방어(누수율 0%) 검증 및 품질 게이트 자동화
+6. [**[Tech Blog #06] 초당 5만 RPS 부하 대응 아키텍처: Token Bucket Throttling & 서킷 브레이커**](doc/blog/06_extreme_load_traffic_throttling_and_circuit_breaker.md)
+   - 스파이크 트래픽 폭주 DoS 차단 및 연쇄 장애(Cascade Failure) 격리를 위한 Fast-Fail 서킷 브레이커 구현기
 
 ---
 
