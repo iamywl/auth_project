@@ -41,10 +41,11 @@
 본 프로젝트는 역할별로 분리된 전문 에이전트 가이드를 기반으로 진행됩니다.
 
 - **총괄 규칙**: [`AGENTS.md`](./AGENTS.md) (현재 파일)
-- **기획/컴플라이언스/문서화 에이전트**: [`.agents/planner_agent.md`](./.agents/planner_agent.md)
-- **아키텍처/백엔드/프론트엔드/AX 개발 에이전트**: [`.agents/developer_agent.md`](./.agents/developer_agent.md)
+- **기획/비즈니스 에이전트**: [`.agents/planner_agent.md`](./.agents/planner_agent.md)
+- **아키텍처/풀스택/AX 개발 에이전트**: [`.agents/developer_agent.md`](./.agents/developer_agent.md)
 - **QA/대규모 동시성·트래픽 스트레스/보안 검증 에이전트**: [`.agents/qa_agent.md`](./.agents/qa_agent.md)
-- **기술 블로깅 & 트러블슈팅 기록 규칙**: 기획, 아키텍처, 개발, 그리고 **QA 대규모 동시 호출 및 트래픽 부하 테스트 과정에서 발생하는 모든 동시성 이슈(Race Condition, Deadlock, Hash-Chain Forking, TOCTOU)와 해결 기법**을 `doc/blog/` 디렉토리에 전수 기술 블로그 포스트로 상세히 연재합니다.
+- **컴플라이언스/법령·라이선스 감사/문서화 검토 에이전트**: [`.agents/compliance_agent.md`](./.agents/compliance_agent.md)
+- **기술 블로깅 & 트러블슈팅 기록 규칙**: 기획, 아키텍처, 개발, QA 동시성 검증 및 컴플라이언스 심사 검토 과정에서 발생하는 모든 이슈(Race Condition, Deadlock, Hash-Chain Forking, TOCTOU, 규제 적합성)와 해결 기법을 `doc/blog/` 디렉토리에 6단계 작성 표준에 맞춰 상세히 연재합니다.
 
 ---
 
@@ -54,20 +55,20 @@ auth_project/
 ├── AGENTS.md                        # 프로젝트 총괄 에이전트 지침
 ├── README.md                        # 프로젝트 소개 및 실행 가이드
 ├── .agents/
-│   ├── planner_agent.md             # [기획 에이전트] 서비스/포털 기획, 컴플라이언스 분석, API 운영 매뉴얼 작성
-│   ├── developer_agent.md           # [개발 에이전트] PKI/인증 API, 제휴사 포털, AI 컴플라이언스 AX 구현
-│   └── qa_agent.md                  # [QA 에이전트] 대규모 동시성, 레이스 컨디션, 스트레스 부하 검증 및 이슈 블로깅
-├── doc/                             # 기획서, API 운영 매뉴얼, 라이선스 심사 문서 및 기술 블로그(과정/이슈/기법)
+│   ├── planner_agent.md             # [기획 에이전트] 서비스/포털 기획, API 운영 매뉴얼 작성
+│   ├── developer_agent.md           # [개발 에이전트] PKI/인증 API, Hexagonal 아키텍처, Redis 락 구현
+│   ├── qa_agent.md                  # [QA 에이전트] 대규모 동시성, 레이스 컨디션, 스트레스 부하 검증
+│   └── compliance_agent.md          # [컴플라이언스 에이전트] 3대 라이선스 심사, 아키텍처 문서화 완전성 감사
+├── doc/                             # 기획서, API 운영 매뉴얼, 라이선스 심사 문서 및 기술 블로그
+│   ├── ARCHITECTURE.md              # Hexagonal 아키텍처 명세 및 공식 아이콘 R&R
+│   ├── ARCHITECTURE_REVIEW_REPORT.md# [컴플라이언스 감사] 아키텍처 및 기술 문서화 완전성 심사 보고서
 │   ├── PRD.md                       # 서비스 및 제휴사 포털 기획서
 │   ├── API_OPERATIONS_MANUAL.md     # 제휴사 인증 API 상세 운영 매뉴얼
 │   ├── COMPLIANCE_LICENSE_GUIDE.md  # 전자서명/본인확인/웹트러스트 라이선스 심사 기준 및 체크리스트
-│   └── blog/                        # 개발 & QA 동시성 트러블슈팅 기술 블로그 시리즈
-│       ├── README.md                # 기술 블로그 목차 및 연재 가이드
-│       ├── 01_architecture_and_compliance_by_design.md
-│       ├── 02_pki_x509_ocsp_and_ci_di_engineering.md
-│       ├── 03_partner_api_gateway_and_hash_chain_audit.md
-│       ├── 04_ai_transformation_ax_for_license_audit.md
-│       └── 05_high_concurrency_race_condition_and_stress_qa.md
+│   ├── assets/icons/                # 오픈소스 공식 벡터 아이콘 (FastAPI, Redis, GitLab, Python, Docker)
+│   └── blog/                        # 6단계 표준 기술 블로그 시리즈
+│       ├── GUIDELINES.md            # 블로그 작성 가이드라인 (Why-PainPoints-Tradeoff-DeepDive-Benefits)
+│       └── 01 ~ 05_*.md             # 5편의 엔지니어링 기술 블로그
 ├── backend/                         # 인증 API 서버, PKI 엔진, 동시성 세이프 감사 엔진, AX 모듈
 └── frontend/                        # 제휴사 포털 사이트 & 실시간 스트레스 테스트 대시보드
 ```
