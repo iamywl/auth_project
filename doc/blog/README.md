@@ -12,6 +12,20 @@
 | **02** | [`02_pki_x509_ocsp_and_ci_di_engineering.md`](./02_pki_x509_ocsp_and_ci_di_engineering.md) | **[PKI & 암호화 기법]** X.509 3-Tier 인증서 체인(Root-Intermediate-Leaf) 구현, 실시간 OCSP/CRL 폐지 검증, HMAC-SHA256 기반 CI(88B)/DI(64B) 생성 이슈와 해결 | 개발 |
 | **03** | [`03_partner_api_gateway_and_hash_chain_audit.md`](./03_partner_api_gateway_and_hash_chain_audit.md) | **[제휴사 API & 보안 감사]** 제휴사 API 게이트웨이 설계, Replay Attack 방지(Nonce/TTL) 기법, 라이선스 심사 증적을 위한 Hash-Chain 기반 무결성 감사 로그 구현 이슈 | 기획 + 개발 |
 | **04** | [`04_ai_transformation_ax_for_license_audit.md`](./04_ai_transformation_ax_for_license_audit.md) | **[AI 전환 (AX) 기법]** 수백 페이지의 법령·인증업무준칙(CPS)·라이선스 심사 기준을 자동 점검하는 Compliance AX 엔진 및 제휴사 기술지원 AI 어시스턴트 구현기 | 기획 + 개발 |
+| **05** | [`05_high_concurrency_race_condition_and_stress_qa.md`](./05_high_concurrency_race_condition_and_stress_qa.md) | **[대규모 동시성 & QA]** DAU 수백만 트래픽에서의 레이스 컨디션 정복기: Redis 분산 락, Hexagonal Architecture, GitLab CI/CD 스트레스 품질 게이트 | QA + 개발 |
+
+---
+
+## 🏛️ 시스템 아키텍처 명세
+- [**카카오뱅크 인증 플랫폼 아키텍처 명세서 (`doc/ARCHITECTURE.md`)**](../ARCHITECTURE.md):
+  - 오픈소스 공식 아이콘(FastAPI, Redis, GitLab, Python, Docker) 수록
+  - Hexagonal Architecture 포트 & 어댑터 구조도 및 인바운드/도메인코어/아웃바운드 구성요소별 R&R 명시
+
+---
+
+## ✍️ 기술 블로그 작성 가이드라인 (Blog Standard)
+- [**블로그 작성 가이드라인 (`doc/blog/GUIDELINES.md`)**](./GUIDELINES.md):
+  - 반드시 **"왜 기술 스택이 필요한지(Why)"**, **"미도입 시 문제(Pain Points)"**, **"기술 대안 비교(Trade-off)"**, **"도입으로 얻은 정량적/정성적 이익(Benefits)"**을 포함하는 6단계 표준 수록.
 
 ---
 

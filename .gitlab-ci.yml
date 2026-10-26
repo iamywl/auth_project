@@ -1,0 +1,81 @@
+stages:
+  - lint
+  - test
+  - stress_qa
+  - security
+  - build
+  - deploy
+
+variables:
+  PYTHON_VERSION: "3.12"
+  DOCKER_IMAGE: "registry.gitlab.com/iamywl/auth_project"
+
+# 1. 정적 분석 및 린트
+lint:
+  stage: lint
+  image: python:3.12-slim
+  script:
+    - pip install flake8 black
+    - black --check backend/
+    - flake8 backend/ --max-line-length=120 --ignore=E501,W503
+
+# 2. 단위 및 기능 통합 테스트
+unit_test:
+  stage: test
+  image: python:3.12-slim
+  before_script:
+    - pip install -r requirements.txt
+  script:
+    - python tests/run_tests.py
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+
+# 3. 대규모 동시성 & 레이스 컨디션 극한 QA 스트레스 테스트 (품질 게이트)
+stress_concurrency_qa:
+  stage: stress_qa
+  image: python:3.12-slim
+  services:
+    - redis:7.2-alpine
+  before_script:
+    - pip install -r requirements.txt
+  script:
+    - echo "Executing High-Concurrency Race Condition & Stress Test Suite..."
+    - python tests/run_concurrency_qa.py
+  artifacts:
+    when: always
+    reports:
+      junit: test-results.xml
+
+# 4. 보안 취약점 점검 (SAST & Dependency Scan)
+security_scan:
+  stage: security
+  image: python:3.12-slim
+  script:
+    - pip install bandit
+    - bandit -r backend/ -ll
+
+# 5. Docker 컨테이너 빌드
+build_image:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:dind
+  script:
+    - docker build -t $DOCKER_IMAGE:$CI_COMMIT_SHA -t $DOCKER_IMAGE:latest .
+    - echo "Docker Image Build Complete"
+  only:
+    - main
+
+# 6. Kubernetes 무중단 롤링 업데이트 배포
+deploy_production:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  script:
+    - echo "Deploying auth_project to Kubernetes Cluster (Rolling Update)..."
+    - kubectl set image deployment/auth-gateway-deployment auth-gateway=$DOCKER_IMAGE:$CI_COMMIT_SHA --record
+    - kubectl rollout status deployment/auth-gateway-deployment
+  environment:
+    name: production
+    url: https://auth.kakaobank.com
+  only:
+    - main
+  when: manual

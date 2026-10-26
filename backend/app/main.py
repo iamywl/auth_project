@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from .pki_engine import pki_engine
 from .audit_logger import audit_logger
 from .compliance_ax import compliance_ax_engine
+from .redis_adapter import dist_lock_service, redis_session_store
 
 app = FastAPI(
     title="KakaoBank Partner Auth & Compliance AX Platform",
@@ -115,6 +116,9 @@ def issue_oauth_token(req: TokenRequest):
         )
 
     token_str = f"kb_at_{uuid.uuid4().hex}"
+    
+    # Redis 세션 저장소에 세션 캐싱 (DAU 스케일아웃 분산 아키텍처)
+    redis_session_store.set(token_str, {"client_id": req.client_id}, ttl_seconds=3600)
     ACTIVE_TOKENS[token_str] = {
         "client_id": req.client_id,
         "created_at": time.time(),
@@ -196,63 +200,85 @@ def complete_identity_in_user_app(req: AppCompleteRequest):
 
 @app.post("/api/v1/identity/verify", tags=["Identity"])
 def verify_identity_result(req: VerifyRequest, client_id: str = Depends(verify_partner_token)):
-    """제휴사가 1회에 한해 본인확인 결과를 조회 (Replay Attack 방지 단방향 FSM)"""
-    tx = TRANSACTIONS_DB.get(req.tx_id)
-    if not tx:
-        raise HTTPException(status_code=400, detail={"error_code": "AUTH_4004_NOT_FOUND", "message": "트랜잭션을 찾을 수 없습니다."})
-
-    if tx["client_id"] != client_id:
-        raise HTTPException(status_code=403, detail={"error_code": "AUTH_4003_FORBIDDEN", "message": "해당 제휴사의 트랜잭션이 아닙니다."})
-
-    # Replay Attack 차단: 이미 소비(VERIFIED)된 트랜잭션
-    if tx["status"] == "VERIFIED":
+    """
+    제휴사가 1회에 한해 본인확인 결과를 조회
+    - Redis 분산 락(Distributed Lock)을 적용하여 멀티스레드/멀티인스턴스 고동시성 Replay Attack 완벽 차단
+    """
+    lock_key = f"lock:verify:{req.tx_id}"
+    # Redis 분산 락 획득 시도 (동시 요청 경합 방어)
+    acquired = dist_lock_service.acquire_lock(lock_key, ttl_ms=3000)
+    if not acquired:
         audit_logger.log(
-            action="SECURITY_ALERT_REPLAY_ATTACK",
+            action="SECURITY_ALERT_CONCURRENT_RACE_CONDITION",
             client_id=client_id,
             tx_id=req.tx_id,
-            payload_summary={"warning": "Double verification attempt blocked"}
+            payload_summary={"warning": "Concurrent verify requests detected. Distributed lock contention."}
         )
         raise HTTPException(
             status_code=400,
-            detail={"error_code": "AUTH_4009_ALREADY_VERIFIED", "message": "이미 결과 조회가 완료된 1회성 트랜잭션입니다. (재사용 불가)"}
+            detail={"error_code": "AUTH_4009_ALREADY_VERIFIED", "message": "동시 검증 요청 경합 또는 이미 소비된 트랜잭션입니다."}
         )
 
-    if tx["status"] == "REQUESTED":
-        raise HTTPException(
-            status_code=400,
-            detail={"error_code": "AUTH_4005_TRANSACTION_PENDING", "message": "사용자가 아직 앱에서 인증을 완료하지 않았습니다."}
+    try:
+        tx = TRANSACTIONS_DB.get(req.tx_id)
+        if not tx:
+            raise HTTPException(status_code=400, detail={"error_code": "AUTH_4004_NOT_FOUND", "message": "트랜잭션을 찾을 수 없습니다."})
+
+        if tx["client_id"] != client_id:
+            raise HTTPException(status_code=403, detail={"error_code": "AUTH_4003_FORBIDDEN", "message": "해당 제휴사의 트랜잭션이 아닙니다."})
+
+        # Replay Attack 차단: 이미 소비(VERIFIED)된 트랜잭션
+        if tx["status"] == "VERIFIED":
+            audit_logger.log(
+                action="SECURITY_ALERT_REPLAY_ATTACK",
+                client_id=client_id,
+                tx_id=req.tx_id,
+                payload_summary={"warning": "Double verification attempt blocked"}
+            )
+            raise HTTPException(
+                status_code=400,
+                detail={"error_code": "AUTH_4009_ALREADY_VERIFIED", "message": "이미 결과 조회가 완료된 1회성 트랜잭션입니다. (재사용 불가)"}
+            )
+
+        if tx["status"] == "REQUESTED":
+            raise HTTPException(
+                status_code=400,
+                detail={"error_code": "AUTH_4005_TRANSACTION_PENDING", "message": "사용자가 아직 앱에서 인증을 완료하지 않았습니다."}
+            )
+
+        if tx["status"] != "COMPLETED":
+            raise HTTPException(status_code=400, detail={"error_code": "AUTH_4006_INVALID_STATE", "message": f"트랜잭션 상태 불일치 ({tx['status']})"})
+
+        # 상태 원자적 전이: COMPLETED -> VERIFIED
+        tx["status"] = "VERIFIED"
+
+        # 표준 규격 CI (88B), DI (64B) 생성
+        rrn_back_dummy = hashlib.sha256(f"{tx['user_birth']}:{tx['user_phone']}".encode()).hexdigest()
+        ci, di = pki_engine.generate_ci_and_di(tx["user_birth"][:6], rrn_back_dummy, client_id)
+
+        audit_logger.log(
+            action="IDENTITY_VERIFIED_CONSUMED",
+            client_id=client_id,
+            tx_id=req.tx_id,
+            payload_summary={"ci_length": len(ci), "di_length": len(di)}
         )
 
-    if tx["status"] != "COMPLETED":
-        raise HTTPException(status_code=400, detail={"error_code": "AUTH_4006_INVALID_STATE", "message": f"트랜잭션 상태 불일치 ({tx['status']})"})
-
-    # 상태 원자적 전이: COMPLETED -> VERIFIED
-    tx["status"] = "VERIFIED"
-
-    # 표준 규격 CI (88B), DI (64B) 생성
-    rrn_back_dummy = hashlib.sha256(f"{tx['user_birth']}:{tx['user_phone']}".encode()).hexdigest()
-    ci, di = pki_engine.generate_ci_and_di(tx["user_birth"][:6], rrn_back_dummy, client_id)
-
-    audit_logger.log(
-        action="IDENTITY_VERIFIED_CONSUMED",
-        client_id=client_id,
-        tx_id=req.tx_id,
-        payload_summary={"ci_length": len(ci), "di_length": len(di)}
-    )
-
-    return {
-        "tx_id": req.tx_id,
-        "verified": True,
-        "user_info": {
-            "name": tx["user_name"],
-            "birthday": tx["user_birth"],
-            "gender": "1" if int(tx["user_birth"][:4]) < 2000 else "3",
-            "phone": tx["user_phone"]
-        },
-        "ci": ci,
-        "di": di,
-        "verified_at": datetime.datetime.now(datetime.timezone.utc).isoformat()
-    }
+        return {
+            "tx_id": req.tx_id,
+            "verified": True,
+            "user_info": {
+                "name": tx["user_name"],
+                "birthday": tx["user_birth"],
+                "gender": "1" if int(tx["user_birth"][:4]) < 2000 else "3",
+                "phone": tx["user_phone"]
+            },
+            "ci": ci,
+            "di": di,
+            "verified_at": datetime.datetime.now(datetime.timezone.utc).isoformat()
+        }
+    finally:
+        # 분산 락 해제
+        dist_lock_service.release_lock(lock_key)
 
 # --- 3. Digital Signature APIs (전자서명) ---
 @app.post("/api/v1/sign/request", tags=["Digital Signature"])
