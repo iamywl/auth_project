@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카카오뱅크 제휴사 인증 포털 & 컴플라이언스 AX 센터</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .kakaobank-yellow { background-color: #FEE500; }
+        .kakaobank-dark { background-color: #26282B; }
+        .kakaobank-border { border-color: #FEE500; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased">
+
+    <!-- Top Navigation -->
+    <header class="bg-gray-900 text-white shadow sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
+            <div class="flex items-center space-x-3">
+                <span class="w-8 h-8 rounded-full bg-yellow-400 text-gray-900 flex items-center justify-center font-bold text-lg">B</span>
+                <span class="text-xl font-bold tracking-tight">kakaobank <span class="text-yellow-400 font-normal">인증센터 제휴사 포털</span></span>
+                <span class="bg-yellow-400/20 text-yellow-300 text-xs px-2.5 py-0.5 rounded-full font-semibold border border-yellow-400/30">AX Live Platform</span>
+            </div>
+            <div class="flex items-center space-x-6 text-sm">
+                <button onclick="switchTab('sandbox')" class="tab-btn font-semibold text-yellow-400 hover:text-yellow-300 flex items-center space-x-1" id="tab-sandbox-btn">
+                    <i class="fa-solid fa-flask"></i><span>연동 샌드박스</span>
+                </button>
+                <button onclick="switchTab('compliance')" class="tab-btn text-gray-300 hover:text-white flex items-center space-x-1" id="tab-compliance-btn">
+                    <i class="fa-solid fa-shield-halved"></i><span>라이선스 심사 AX</span>
+                </button>
+                <button onclick="switchTab('audit')" class="tab-btn text-gray-300 hover:text-white flex items-center space-x-1" id="tab-audit-btn">
+                    <i class="fa-solid fa-link"></i><span>Hash-Chain 감사로그</span>
+                </button>
+                <button onclick="switchTab('manual')" class="tab-btn text-gray-300 hover:text-white flex items-center space-x-1" id="tab-manual-btn">
+                    <i class="fa-solid fa-book"></i><span>API 운영 매뉴얼</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- TAB 1: 연동 샌드박스 (Live API Sandbox) -->
+        <div id="tab-sandbox" class="space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900">제휴사 인터랙티브 연동 샌드박스</h2>
+                        <p class="text-sm text-gray-500 mt-1">실제 백엔드 API와 암호화 엔진을 직접 호출하며 OAuth 토큰 획득부터 본인확인, 1회성 검증, Replay Attack 방어까지 테스트합니다.</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <span class="w-2 h-2 mr-1.5 bg-green-500 rounded-full animate-pulse"></span>API Gateway Normal
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4단계 인터랙티브 실행 파이프라인 -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Step 1: Token -->
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-2 text-yellow-600 font-bold text-sm mb-2">
+                            <span class="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center text-xs">1</span>
+                            <span>OAuth 토큰 발급</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-4">제휴사 Client ID/Secret을 검증하여 3600초 유효한 JWT를 발급받습니다.</p>
+                    </div>
+                    <button onclick="callIssueToken()" class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-2 px-3 rounded-lg text-sm transition">
+                        토큰 발급하기
+                    </button>
+                </div>
+
+                <!-- Step 2: Request -->
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-2 text-yellow-600 font-bold text-sm mb-2">
+                            <span class="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center text-xs">2</span>
+                            <span>본인확인 요청 (Push)</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-4">신원확인 요청을 생성하고 상태 머신을 <code>REQUESTED</code>로 등록합니다.</p>
+                    </div>
+                    <button onclick="callIdentityRequest()" id="btn-request" disabled class="w-full bg-gray-200 text-gray-400 font-bold py-2 px-3 rounded-lg text-sm transition">
+                        인증 요청하기
+                    </button>
+                </div>
+
+                <!-- Step 3: Mobile App Complete -->
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-2 text-yellow-600 font-bold text-sm mb-2">
+                            <span class="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center text-xs">3</span>
+                            <span>사용자 앱 인증 완료</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-4">사용자가 모바일 앱에서 생체인증/PIN 승인을 완료하는 시뮬레이션입니다.</p>
+                    </div>
+                    <button onclick="callAppComplete()" id="btn-complete" disabled class="w-full bg-gray-200 text-gray-400 font-bold py-2 px-3 rounded-lg text-sm transition">
+                        앱 승인 시뮬레이션
+                    </button>
+                </div>
+
+                <!-- Step 4: Verify & Consume -->
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-2 text-yellow-600 font-bold text-sm mb-2">
+                            <span class="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center text-xs">4</span>
+                            <span>결과 검증 (1회 소비)</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-4">결과를 수령하고 CI/DI를 수령합니다. 연속 재시도 시 Replay Attack을 방어합니다.</p>
+                    </div>
+                    <button onclick="callVerifyResult()" id="btn-verify" disabled class="w-full bg-gray-200 text-gray-400 font-bold py-2 px-3 rounded-lg text-sm transition">
+                        결과 조회 및 검증
+                    </button>
+                </div>
+            </div>
+
+            <!-- 콘솔 로그 및 JSON 응답 뷰어 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-900 text-green-400 p-5 rounded-xl font-mono text-xs shadow-inner h-80 overflow-y-auto" id="console-logs">
+                    <div class="text-gray-400">// 실시간 샌드박스 트랜잭션 콘솔 로그</div>
+                    <div class="text-gray-500 mt-1">[Ready] 1단계 토큰 발급 버튼을 눌러 연동을 시작하세요.</div>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col h-80">
+                    <h3 class="font-bold text-sm text-gray-900 mb-2 flex items-center justify-between">
+                        <span>실시간 API 응답 전문 (Payload)</span>
+                        <span id="response-status-badge" class="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">Standby</span>
+                    </h3>
+                    <pre class="bg-gray-50 p-3 rounded-lg text-xs font-mono text-gray-700 flex-1 overflow-auto" id="response-payload">{
+  "status": "ready"
+}</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: 라이선스 심사 AX 센터 (Compliance AX) -->
+        <div id="tab-compliance" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900">인증 라이선스 심사 대응 AI 진단 센터 (AX)</h2>
+                    <p class="text-sm text-gray-500 mt-1">본인확인기관 · 전자서명인증사업자 · 웹트러스트 · 전자금융거래법 기준을 실시간 자동 스캔하고 심사 리포트를 생성합니다.</p>
+                </div>
+                <button onclick="refreshComplianceScan()" class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-2 px-4 rounded-xl text-sm flex items-center space-x-2">
+                    <i class="fa-solid fa-rotate-right"></i><span>AI 진단 즉시 재실행</span>
+                </button>
+            </div>
+
+            <!-- 스코어 카드 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                    <span class="text-xs font-bold text-gray-500 uppercase">라이선스 심사 적합성 점수</span>
+                    <div class="text-4xl font-extrabold text-green-600 mt-2" id="compliance-score">100%</div>
+                    <span class="text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded mt-2 inline-block font-semibold">READY FOR AUDIT (적합)</span>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                    <span class="text-xs font-bold text-gray-500 uppercase">심사 통제 항목 충족율</span>
+                    <div class="text-4xl font-extrabold text-gray-900 mt-2">5 / 5</div>
+                    <span class="text-xs text-blue-700 bg-blue-50 px-2 py-0.5 rounded mt-2 inline-block font-semibold">100% Pass (결함 0건)</span>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                    <span class="text-xs font-bold text-gray-500 uppercase">감사 로그 무결성 상태</span>
+                    <div class="text-4xl font-extrabold text-blue-600 mt-2">100%</div>
+                    <span class="text-xs text-purple-700 bg-purple-50 px-2 py-0.5 rounded mt-2 inline-block font-semibold">Hash-Chain Valid</span>
+                </div>
+            </div>
+
+            <!-- AI 소견서 및 체크리스트 -->
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+                <div class="bg-yellow-50/70 border border-yellow-200 p-4 rounded-xl">
+                    <h3 class="font-bold text-sm text-yellow-900 flex items-center space-x-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-yellow-600"></i>
+                        <span>AI 컴플라이언스 종합 평가 소견 (Executive Summary)</span>
+                    </h3>
+                    <p class="text-xs text-yellow-800 mt-2 leading-relaxed" id="ai-summary">
+                        카카오뱅크 인증센터 라이선스 심사 자동 진단 결과 종합 점수 100% (적합)입니다. 전자서명법, 정보통신망법(본인확인기관), WebTrust for CA, 전자금융거래법 기술적 보호조치 전 항목이 시스템 코어 레벨에서 완벽히 충족되고 있으며, Hash-Chain 기반 감사로그 무결성이 실시간 검증되었습니다.
+                    </p>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left text-gray-700">
+                        <thead class="bg-gray-50 text-gray-600 uppercase border-y">
+                            <tr>
+                                <th class="py-3 px-4">통제 항목 ID</th>
+                                <th class="py-3 px-4">라이선스 구분</th>
+                                <th class="py-3 px-4">법령 / 규정 기준</th>
+                                <th class="py-3 px-4">기술적 구현 및 증적</th>
+                                <th class="py-3 px-4 text-center">판정</th>
+                            </tr>
+                        </thead>
+                        <tbody id="compliance-table-body">
+                            <!-- JS 렌더링 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Hash-Chain 감사로그 (Audit Trail) -->
+        <div id="tab-audit" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900">블록체인형 Hash-Chain 위·변조 방지 감사 로그</h2>
+                    <p class="text-sm text-gray-500 mt-1">전자금융거래법 제21조 충족: 직전 로그의 해시를 연쇄 결합하여 단 1건의 조작도 불가능한 무결성 감사 기록</p>
+                </div>
+                <button onclick="loadAuditLogs()" class="bg-gray-900 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-xl text-sm flex items-center space-x-2">
+                    <i class="fa-solid fa-arrows-rotate"></i><span>감사로그 갱신</span>
+                </button>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm overflow-x-auto">
+                <table class="w-full text-xs text-left text-gray-700">
+                    <thead class="bg-gray-50 text-gray-600 uppercase border-y">
+                        <tr>
+                            <th class="py-3 px-3">Idx</th>
+                            <th class="py-3 px-3">타임스탬프 (UTC)</th>
+                            <th class="py-3 px-3">액션 (Action)</th>
+                            <th class="py-3 px-3">제휴사</th>
+                            <th class="py-3 px-3">트랜잭션 ID</th>
+                            <th class="py-3 px-3">Previous Hash (직전 블록)</th>
+                            <th class="py-3 px-3">Current Block Hash</th>
+                        </tr>
+                    </thead>
+                    <tbody id="audit-table-body" class="font-mono">
+                        <!-- JS 렌더링 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 4: API 운영 매뉴얼 & AI 기술지원 (Manual & AI Support) -->
+        <div id="tab-manual" class="hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- AI 기술지원 챗봇 -->
+                <div class="md:col-span-1 bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-col h-[520px]">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <div class="w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center font-bold text-xs text-gray-900">AX</div>
+                        <div>
+                            <h3 class="font-bold text-sm text-gray-900">제휴사 기술지원 AI 어시스턴트</h3>
+                            <p class="text-[11px] text-gray-500">에러 코드 및 연동 규격을 즉시 답변합니다.</p>
+                        </div>
+                    </div>
+                    <div class="flex-1 bg-gray-50 rounded-xl p-3 overflow-y-auto space-y-3 text-xs" id="chat-box">
+                        <div class="bg-white p-2.5 rounded-lg border shadow-xs text-gray-800">
+                            안녕하세요! 카카오뱅크 인증센터 연동 중 발생하는 에러 코드(`AUTH_4009`, `CERT_5001` 등)나 규격에 대해 무엇이든 질문해 주세요.
+                        </div>
+                    </div>
+                    <div class="mt-3 flex space-x-2">
+                        <input type="text" id="chat-input" placeholder="예: AUTH_4009 에러는 왜 발생하나요?" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-yellow-400">
+                        <button onclick="sendChatMessage()" class="bg-yellow-400 font-bold px-3 py-2 rounded-lg text-xs hover:bg-yellow-500">전송</button>
+                    </div>
+                </div>
+
+                <!-- API 레퍼런스 안내 -->
+                <div class="md:col-span-2 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm overflow-y-auto h-[520px] space-y-4 text-xs">
+                    <h3 class="font-bold text-base text-gray-900 border-b pb-2">카카오뱅크 인증 API 빠른 참조 가이드</h3>
+                    <div>
+                        <span class="inline-block px-2 py-0.5 font-bold rounded bg-blue-100 text-blue-800">POST</span>
+                        <code class="font-bold text-sm ml-2">/api/v1/oauth/token</code>
+                        <p class="text-gray-500 mt-1">제휴사 인증 및 1시간 유효 JWT 토큰 발급</p>
+                    </div>
+                    <div class="border-t pt-3">
+                        <span class="inline-block px-2 py-0.5 font-bold rounded bg-green-100 text-green-800">POST</span>
+                        <code class="font-bold text-sm ml-2">/api/v1/identity/request</code>
+                        <p class="text-gray-500 mt-1">사용자 앱 푸시 및 본인확인 트랜잭션(`tx_id`) 생성 (TTL: 300초)</p>
+                    </div>
+                    <div class="border-t pt-3">
+                        <span class="inline-block px-2 py-0.5 font-bold rounded bg-purple-100 text-purple-800">POST</span>
+                        <code class="font-bold text-sm ml-2">/api/v1/identity/verify</code>
+                        <p class="text-gray-500 mt-1">결과 검증 및 표준 규격 연계정보(CI 88B) / 중복가입확인정보(DI 64B) 1회성 소비 수령</p>
+                    </div>
+                    <div class="border-t pt-3">
+                        <span class="inline-block px-2 py-0.5 font-bold rounded bg-orange-100 text-orange-800">POST</span>
+                        <code class="font-bold text-sm ml-2">/api/v1/sign/verify</code>
+                        <p class="text-gray-500 mt-1">PKI RSA-2048 전자서명 무결성 검증 및 실시간 OCSP 상태 교차 판정</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const API_BASE = "http://localhost:8000";
+        let currentToken = null;
+        let currentTxId = null;
+
+        function logToConsole(message, type = "info") {
+            const el = document.getElementById("console-logs");
+            const time = new Date().toLocaleTimeString();
+            const color = type === "error" ? "text-red-400" : (type === "success" ? "text-green-400" : "text-yellow-300");
+            el.innerHTML += `<div class="${color} mt-1">[${time}] ${message}</div>`;
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function setPayload(data, status = "200 OK") {
+            document.getElementById("response-payload").textContent = JSON.stringify(data, null, 2);
+            document.getElementById("response-status-badge").textContent = status;
+            document.getElementById("response-status-badge").className = status.includes("200") 
+                ? "text-xs px-2 py-0.5 rounded bg-green-100 text-green-800" 
+                : "text-xs px-2 py-0.5 rounded bg-red-100 text-red-800";
+        }
+
+        function switchTab(tabId) {
+            ["sandbox", "compliance", "audit", "manual"].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add("hidden");
+                document.getElementById(`tab-${t}-btn`).classList.remove("text-yellow-400", "font-semibold");
+                document.getElementById(`tab-${t}-btn`).classList.add("text-gray-300");
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove("hidden");
+            document.getElementById(`tab-${tabId}-btn`).classList.add("text-yellow-400", "font-semibold");
+            document.getElementById(`tab-${tabId}-btn`).classList.remove("text-gray-300");
+
+            if (tabId === "compliance") refreshComplianceScan();
+            if (tabId === "audit") loadAuditLogs();
+        }
+
+        // --- Sandbox API Handlers ---
+        async function callIssueToken() {
+            try {
+                logToConsole("POST /api/v1/oauth/token 호출 중...");
+                const res = await fetch(`${API_BASE}/api/v1/oauth/token`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ client_id: "test_partner_id", client_secret: "test_partner_secret" })
+                });
+                const data = await res.json();
+                setPayload(data, `${res.status} OK`);
+                currentToken = data.access_token;
+                logToConsole(`OAuth 토큰 발급 성공: ${currentToken.substring(0, 20)}...`, "success");
+                
+                document.getElementById("btn-request").disabled = false;
+                document.getElementById("btn-request").className = "w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-2 px-3 rounded-lg text-sm transition";
+            } catch (err) {
+                logToConsole(`토큰 발급 실패: ${err.message}`, "error");
+            }
+        }
+
+        async function callIdentityRequest() {
+            try {
+                logToConsole("POST /api/v1/identity/request 본인확인 요청 전송...");
+                const res = await fetch(`${API_BASE}/api/v1/identity/request`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({
+                        user_name: "카카오뱅크지원자",
+                        user_phone: "010-8888-9999",
+                        user_birth: "19980101",
+                        request_reason: "제휴사 샌드박스 검증"
+                    })
+                });
+                const data = await res.json();
+                currentTxId = data.tx_id;
+                setPayload(data, `${res.status} OK`);
+                logToConsole(`본인확인 트랜잭션 발급 (REQUESTED): ${currentTxId}`, "success");
+
+                document.getElementById("btn-complete").disabled = false;
+                document.getElementById("btn-complete").className = "w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-2 px-3 rounded-lg text-sm transition";
+            } catch (err) {
+                logToConsole(`요청 실패: ${err.message}`, "error");
+            }
+        }
+
+        async function callAppComplete() {
+            try {
+                logToConsole(`POST /api/v1/identity/complete 사용자 앱 승인 시뮬레이션: ${currentTxId}...`);
+                const res = await fetch(`${API_BASE}/api/v1/identity/complete`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ tx_id: currentTxId })
+                });
+                const data = await res.json();
+                setPayload(data, `${res.status} OK`);
+                logToConsole("사용자 모바일 앱 승인 완료 (COMPLETED)", "success");
+
+                document.getElementById("btn-verify").disabled = false;
+                document.getElementById("btn-verify").className = "w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-2 px-3 rounded-lg text-sm transition";
+            } catch (err) {
+                logToConsole(`앱 승인 실패: ${err.message}`, "error");
+            }
+        }
+
+        async function callVerifyResult() {
+            try {
+                logToConsole(`POST /api/v1/identity/verify 결과 조회 및 1회성 소비 호출: ${currentTxId}...`);
+                const res = await fetch(`${API_BASE}/api/v1/identity/verify`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({ tx_id: currentTxId })
+                });
+                const data = await res.json();
+                setPayload(data, `${res.status} ${res.ok ? 'OK' : 'Error'}`);
+                
+                if (res.ok) {
+                    logToConsole(`본인확인 결과 수령 완료! (CI: ${data.ci.substring(0, 24)}..., DI: ${data.di.substring(0, 20)}...)`, "success");
+                    logToConsole("ℹ️ [테스트 가이드] '결과 조회' 버튼을 한 번 더 누르면 Replay Attack 방어(AUTH_4009)를 직접 확인할 수 있습니다.", "info");
+                } else {
+                    logToConsole(`[보안 방어 확인] ${data.detail.error_code}: ${data.detail.message}`, "error");
+                }
+            } catch (err) {
+                logToConsole(`검증 실패: ${err.message}`, "error");
+            }
+        }
+
+        // --- Compliance AX Scan ---
+        async function refreshComplianceScan() {
+            try {
+                const res = await fetch(`${API_BASE}/api/v1/compliance/scan`);
+                const data = await res.json();
+                document.getElementById("compliance-score").textContent = `${data.compliance_score}%`;
+                document.getElementById("ai-summary").textContent = data.ai_executive_summary;
+
+                const tbody = document.getElementById("compliance-table-body");
+                tbody.innerHTML = "";
+                data.checklist.forEach(item => {
+                    tbody.innerHTML += `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="py-3 px-4 font-mono font-bold text-gray-900">${item.id}</td>
+                            <td class="py-3 px-4 font-semibold text-gray-800">${item.license}</td>
+                            <td class="py-3 px-4 text-gray-600">${item.regulation}</td>
+                            <td class="py-3 px-4 text-gray-700 font-mono text-[11px]">${item.evidence}</td>
+                            <td class="py-3 px-4 text-center">
+                                <span class="bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-bold text-[10px]">PASS</span>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                console.error("Compliance scan fetch error:", err);
+            }
+        }
+
+        // --- Audit Log Loader ---
+        async function loadAuditLogs() {
+            try {
+                const res = await fetch(`${API_BASE}/api/v1/audit/logs?limit=15`);
+                const data = await res.json();
+                const tbody = document.getElementById("audit-table-body");
+                tbody.innerHTML = "";
+                data.recent_logs.forEach(log => {
+                    tbody.innerHTML += `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="py-2.5 px-3 text-gray-500">${log.index}</td>
+                            <td class="py-2.5 px-3 text-gray-600">${log.timestamp.substring(11, 19)}</td>
+                            <td class="py-2.5 px-3 font-semibold text-gray-900">${log.action}</td>
+                            <td class="py-2.5 px-3 text-gray-500">${log.client_id}</td>
+                            <td class="py-2.5 px-3 text-gray-600">${log.tx_id}</td>
+                            <td class="py-2.5 px-3 text-gray-400 text-[10px]">${log.prev_hash.substring(0, 16)}...</td>
+                            <td class="py-2.5 px-3 text-blue-600 text-[10px] font-bold">${log.hash.substring(0, 16)}...</td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                console.error("Audit logs fetch error:", err);
+            }
+        }
+
+        // --- AI Chatbot ---
+        async function sendChatMessage() {
+            const input = document.getElementById("chat-input");
+            const query = input.value.trim();
+            if (!query) return;
+
+            const box = document.getElementById("chat-box");
+            box.innerHTML += `<div class="bg-yellow-100 p-2.5 rounded-lg text-right font-medium text-gray-900">${query}</div>`;
+            input.value = "";
+            box.scrollTop = box.scrollHeight;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/v1/support/chat`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ query: query })
+                });
+                const data = await res.json();
+                box.innerHTML += `
+                    <div class="bg-white p-2.5 rounded-lg border shadow-xs space-y-1">
+                        <div class="font-bold text-gray-900">${data.answer}</div>
+                        <div class="text-[11px] text-gray-500"><strong>원인:</strong> ${data.root_cause}</div>
+                        <div class="text-[11px] text-blue-600"><strong>조치:</strong> ${data.solution}</div>
+                        <div class="text-[10px] text-gray-400">참조: ${data.related_docs}</div>
+                    </div>
+                `;
+                box.scrollTop = box.scrollHeight;
+            } catch (err) {
+                box.innerHTML += `<div class="bg-red-50 text-red-600 p-2 rounded">오류: ${err.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

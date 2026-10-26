@@ -24,6 +24,7 @@
 - **총괄 규칙**: [`AGENTS.md`](./AGENTS.md) (현재 파일)
 - **기획/컴플라이언스/문서화 에이전트**: [`.agents/planner_agent.md`](./.agents/planner_agent.md)
 - **아키텍처/백엔드/프론트엔드/AX 개발 에이전트**: [`.agents/developer_agent.md`](./.agents/developer_agent.md)
+- **기술 블로깅 & 트러블슈팅 기록 규칙**: 모든 기획·개발 단계마다 발생한 **개발 과정 이슈(Troubleshooting), 적용 기술(Architecture & PKI/Security), 핵심 기법(AX & Compliance Engineering)**을 `doc/` 디렉토리에 기술 블로그 포스트 형태로 상세히 문서화합니다.
 
 ---
 
@@ -35,10 +36,16 @@ auth_project/
 ├── .agents/
 │   ├── planner_agent.md             # [기획 에이전트] 서비스/포털 기획, 컴플라이언스 분석, API 운영 매뉴얼 작성
 │   └── developer_agent.md           # [개발 에이전트] PKI/인증 API, 제휴사 포털, AI 컴플라이언스 AX 구현
-├── docs/                            # 기획서, 컴플라이언스 매핑표, API 운영 매뉴얼, 심사 대응 문서
+├── doc/                             # 기획서, API 운영 매뉴얼, 라이선스 심사 문서 및 기술 블로그(과정/이슈/기법)
 │   ├── PRD.md                       # 서비스 및 제휴사 포털 기획서
 │   ├── API_OPERATIONS_MANUAL.md     # 제휴사 인증 API 상세 운영 매뉴얼
-│   └── COMPLIANCE_LICENSE_GUIDE.md  # 전자서명/본인확인/웹트러스트 라이선스 심사 기준 및 체크리스트
+│   ├── COMPLIANCE_LICENSE_GUIDE.md  # 전자서명/본인확인/웹트러스트 라이선스 심사 기준 및 체크리스트
+│   └── blog/                        # 개발 과정 이슈, 기술 선택 배경, 암호화/PKI/AX 기법 기술 블로그 시리즈
+│       ├── README.md                # 기술 블로그 목차 및 연재 가이드
+│       ├── 01_architecture_and_compliance_by_design.md
+│       ├── 02_pki_x509_ocsp_and_ci_di_engineering.md
+│       ├── 03_partner_api_gateway_and_hash_chain_audit.md
+│       └── 04_ai_transformation_ax_for_license_audit.md
 ├── backend/                         # 인증 API 서버, PKI 엔진, AI 컴플라이언스 AX 엔진
 └── frontend/                        # 제휴사 포털 사이트 & 라이선스 관리 AX 대시보드
 ```
